@@ -25,7 +25,6 @@
     if (self == nil) {
         // 初始化
         self = [[SoCalendarView alloc]initWithFrame:frame];
-        
     }
     // 设置默认当前月的所有新历数据
     dayArray = [SoDateTools getDayArrayByYear:(int)[[SoDateTools currentDate:@"yyyy"] integerValue] andMonth:(int)[[SoDateTools currentDate:@"MM"] integerValue]];
@@ -74,12 +73,16 @@
     
     NSInteger begain = [SoDateTools getTheWeekOfDayByYera:varYear andByMonth:varMonth];
     
+    UIView *whiteBgView = [[UIView alloc]initWithFrame:CGRectMake(0, KK_WEEKSTITLE_HEiGHT, self.frame.size.width, self.frame.size.height)];
+    whiteBgView.backgroundColor = [UIColor whiteColor];
+    [self addSubview:whiteBgView];
+    
     for (NSInteger i = 0 ; i<dayArray.count; i++) {
         UIView *bgView = [[UIView alloc]initWithFrame:CGRectMake(i%7*btnWidth,i/7*btnheigh+KK_WEEKSTITLE_HEiGHT, btnWidth, btnheigh)];
         bgView.tag = 10+i;
         bgView.layer.cornerRadius = btnWidth/2.0f;
         // 当前天设为cyan背色
-        if(i==[[SoDateTools currentDate:@"dd"] integerValue] && varMonth == [[SoDateTools currentDate:@"MM"] integerValue] &&varYear == [[SoDateTools currentDate:@"yyyy"] integerValue])
+        if(i + 1 - begain == [[SoDateTools currentDate:@"dd"] integerValue] && varMonth == [[SoDateTools currentDate:@"MM"] integerValue] &&varYear == [[SoDateTools currentDate:@"yyyy"] integerValue])
             bgView.backgroundColor = KK_CURREND_DAY_COLOR ;
 //        bgView.layer.masksToBounds = YES;
         [self addSubview:bgView];
@@ -129,12 +132,13 @@
 {
     NSLog(@"click.tag = %ld",(long)sender.tag);
     NSLog(@"%@ , %@",dayArray[sender.tag -100],lunarDayArray[sender.tag -100]);
+    NSInteger begain = [SoDateTools getTheWeekOfDayByYera:varYear andByMonth:varMonth];
 
     for (int i= 0; i<dayArray.count; i++) {
         UIView *bgView = [self viewWithTag:10+i];
         if ([bgView.backgroundColor isEqual:[UIColor colorWithRed:254.0/255 green:208.0/255 blue:55.0/255 alpha:1]]) {
             bgView.backgroundColor = [UIColor clearColor];
-            if(i==[[SoDateTools currentDate:@"dd"] integerValue] && varMonth == [[SoDateTools currentDate:@"MM"] integerValue] &&varYear == [[SoDateTools currentDate:@"yyyy"] integerValue])
+            if(i + 1 - begain ==[[SoDateTools currentDate:@"dd"] integerValue] && varMonth == [[SoDateTools currentDate:@"MM"] integerValue] &&varYear == [[SoDateTools currentDate:@"yyyy"] integerValue])
                 bgView.backgroundColor = KK_CURREND_DAY_COLOR ;
 
         }
@@ -177,6 +181,15 @@
     if ([_deleagte respondsToSelector:@selector(soCalendarView:currenCalendarWithYear:andMonth:)]) {
         [_deleagte soCalendarView:self currenCalendarWithYear:varYear andMonth:varMonth];
     }
+    CATransition *animation = [CATransition animation];
+    [animation setDuration:0.35f];
+    [animation setFillMode:kCAFillModeForwards];
+    [animation setTimingFunction:[CAMediaTimingFunction                                  functionWithName:kCAMediaTimingFunctionEaseOut]];
+//    [animation setDelegate: self];
+    [animation setType:kCATransitionMoveIn];
+    [animation setSubtype:kCATransitionFromRight];
+    
+    [self.layer addAnimation:animation forKey:nil];
 }
 //右滑事件
 - (void)rightHandleSwipe:(UISwipeGestureRecognizer *)gestureRecognizer {
@@ -188,6 +201,15 @@
     if ([_deleagte respondsToSelector:@selector(soCalendarView:currenCalendarWithYear:andMonth:)]) {
         [_deleagte soCalendarView:self currenCalendarWithYear:varYear andMonth:varMonth];
     }
+    CATransition *animation = [CATransition animation];
+    [animation setDuration:0.35f];
+    [animation setFillMode:kCAFillModeForwards];
+    [animation setTimingFunction:[CAMediaTimingFunction
+                                  functionWithName:kCAMediaTimingFunctionEaseOut]];
+    [animation setType:kCATransitionMoveIn];
+    [animation setSubtype:kCATransitionFromLeft];
+//    [animation setDelegate: self];
+    [self.layer addAnimation:animation forKey:nil];
 }
 
 // 跳到某一年月
@@ -211,7 +233,16 @@
 -(void)reloadDaybuttenToCalendarWatch{
     for (int i = 0; i < 42; i++)
         [[self viewWithTag:10+i] removeFromSuperview];
+    
+    
     [self addCalendarButton];
+    
+}
+
+-(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+{
+    [self reloadDateForCalendarWatch];
+
 }
 
 // - (void)drawRect:(CGRect)rect {
